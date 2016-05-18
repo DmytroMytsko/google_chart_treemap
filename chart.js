@@ -1,40 +1,57 @@
 google.charts.load('current', {'packages':['treemap']});
-google.charts.setOnLoadCallback(drawChart);
+google.charts.setOnLoadCallback(init);
 
-function drawChart() {
-    var data = google.visualization.arrayToDataTable([
+function init() {
+    var parentId = 'Global';
+
+    var data = [
         ['Location', 'Parent', 'Market trade volume (size)', 'Market increase/decrease (color)'],
-        ['Global',    null,                 0,                               0],
-        ['America',   'Global',             0,                               0],
-        ['Europe',    'Global',             0,                               0],
-        ['Asia',      'Global',             0,                               0],
-        ['Australia', 'Global',             0,                               0],
-        ['Africa',    'Global',             0,                               0],
-        ['Brazil',    'America',            11,                              10],
-        ['USA',       'America',            52,                              31],
-        ['Mexico',    'America',            24,                              12],
-        ['Canada',    'America',            16,                              -23],
-        ['France',    'Europe',             42,                              -11],
-        ['Germany',   'Europe',             31,                              -2],
-        ['Sweden',    'Europe',             22,                              -13],
-        ['Italy',     'Europe',             17,                              4],
-        ['UK',        'Europe',             21,                              -5],
-        ['China',     'Asia',               36,                              4],
-        ['Japan',     'Asia',               20,                              -12],
-        ['India',     'Asia',               40,                              63],
-        ['Laos',      'Asia',               4,                               34],
-        ['Mongolia',  'Asia',               1,                               -5],
-        ['Israel',    'Asia',               12,                              24],
-        ['Iran',      'Asia',               18,                              13],
-        ['Pakistan',  'Asia',               11,                              -52],
-        ['Egypt',     'Africa',             21,                              0],
-        ['S. Africa', 'Africa',             30,                              43],
-        ['Sudan',     'Africa',             12,                              2],
-        ['Congo',     'Africa',             10,                              12],
-        ['Zaire',     'Africa',             8,                               10]
-    ]);
+        [parentId, null, 0, 0]
+    ];
 
-    tree = new google.visualization.TreeMap(document.getElementById('chart'));
+    $.ajax({
+        url: 'readFile.php',
+        method: 'GET',
+        dataType: 'json',
+        cache: false,
+        async: true
+    }).done(function (data) {
+        var length = data.length;
+
+        if(length>0) {
+            for (var i = 0; i < length ; i++) {
+
+                console.log(':data:i:', typeof(data[i][0]), data[i][0].trim(), typeof(data[i][1]), data[i][1].trim());
+                data[i][1] = parseFloat(data[i][1]);
+
+                if(data[i][1] === data[i][1]) {
+                    data[i][1] = data[i][1].toFixed(2);
+                } else {
+                    data[i][1] = 0.1;
+                };
+
+                var id = data[i][0] ? data[i][0].trim() : i;
+                var size = data[i][1];
+                var color = i;
+
+                console.log(':data:i:', id, size, color);
+
+                data.push([id, parentId, size, color]);
+            };
+            drawChart(data);
+        } else {
+            console.info('data for draw chart is not exists');
+        };
+    }).error(function(e) {
+        console.error(e.name + ':' + e.message + '/r/n' + e.stack);
+    });
+};
+
+function drawChart(data) {
+
+    var data = google.visualization.arrayToDataTable(data);
+
+    var tree = new google.visualization.TreeMap(document.getElementById('chart'));
 
     tree.draw(data, {
         minColor: '#f00',
@@ -44,5 +61,4 @@ function drawChart() {
         fontColor: 'black',
         showScale: true
     });
-
-}
+};

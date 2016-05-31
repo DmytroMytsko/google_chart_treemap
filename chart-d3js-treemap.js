@@ -1,17 +1,18 @@
-google.charts.load('current', {'packages':['treemap']});
-google.charts.setOnLoadCallback(init);
 
+$(document).ready(function(){
+    init();
+});
 function init() {
     var parentId = 'Global';
 
-    var developers = [
-        ['Developers', 'Parent', 'Market trade volume (size)', 'Market increase/decrease (color)'],
-        [parentId, null, 0, 0]
-    ];
+    var tree = {
+        name: "tree",
+        children: []
+    };
 
     var data = getData();
 
-    var count  = 1000;
+    var count  = 10000;
     var length = (count <= data.length) ? count : data.length;
 
     if(length>0) {
@@ -30,37 +31,50 @@ function init() {
             var size = data[i][1];
             var color = data[i][1];
 
-            developers.push([id, parentId, size, color]);
+            tree.children.push({name:id, size: size});
         };
-        drawChart(developers);
+        console.log('count:', tree.children.length);
+        drawChart(tree);
     } else {
         console.info('data for draw chart is not exists');
     };
 };
 
 function drawChart(data) {
-    console.log('drawChart:start');
     console.time('drawChart:end');
+    var margin = {top: 40, right: 10, bottom: 10, left: 10},
+        width = 1600 - margin.left - margin.right,
+        height = 1500 - margin.top - margin.bottom;
 
-    var data = google.visualization.arrayToDataTable(data);
+    var color = d3.scale.category20c(),
+        div = d3.select("body").append("div")
+            .style("position", "relative");
 
-    var tree = new google.visualization.TreeMap(document.getElementById('chart'));
+    var treemap = d3.layout.treemap()
+        .size([width, height])
+        .sticky(true)
+        .value(function(d) { return d.size; });
 
-    google.visualization.events.addListener(tree, 'ready', readyHandler);
+    var node = div.datum(data).selectAll(".node")
+        .data(treemap.nodes)
+        .enter().append("div")
+        .attr("class", "node")
+        .call(position)
+        .style("background-color", function(d) {
+            return d.name == 'tree' ? '#fff' : color(d.name); })
+        .append('div')
+        .style("font-size", function(d) {
+            // compute font size based on sqrt(area)
+            return Math.max(20, 0.18*Math.sqrt(d.area))+'px'; })
+        .text(function(d) { return d.children ? null : d.name; });
 
-
-    tree.draw(data, {
-        minColor: '#f00',
-        midColor: '#ddd',
-        maxColor: '#0d0',
-        headerHeight: 15,
-        fontColor: 'black',
-        showScale: true
-    });
-
-    function readyHandler() {
-        console.timeEnd('drawChart:end');
-    };
+    function position() {
+        this.style("left", function(d) { return d.x + "px"; })
+            .style("top", function(d) { return d.y + "px"; })
+            .style("width", function(d) { return Math.max(0, d.dx - 1) + "px"; })
+            .style("height", function(d) { return Math.max(0, d.dy - 1) + "px"; });
+    }
+    console.timeEnd('drawChart:end');
 };
 
 function getData() {

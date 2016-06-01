@@ -46,8 +46,33 @@
 
     </style>
 
+    <style>
+        .chart {
+            display: block;
+            margin: auto;
+            margin-top: 40px;
+        }
+
+        text {
+            font-size: 11px;
+        }
+
+        rect {
+            fill: none;
+        }
+    </style>
 </head>
 <body>
+<div id="body">
+    <div id="footer">
+        d3.layout.treemap
+        <div class="hint">click or option-click to descend or ascend</div>
+        <div><select>
+            <option value="size">Size</option>
+            <option value="count">Count</option>
+        </select></div>
+    </div>
+</div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
 <!--<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>-->
 <script src="http://d3js.org/d3.v3.min.js"></script>

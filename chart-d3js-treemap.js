@@ -56,6 +56,26 @@ function drawChart(data) {
         .sticky(true)
         .value(function(d) {return d.size; });
 
+    var mousemove = function(d) {
+        var xPosition = d3.event.pageX + 5;
+        var yPosition = d3.event.pageY + 5;
+
+        d3.select("#tooltip")
+            .style("left", xPosition + "px")
+            .style("top", yPosition + "px");
+        d3.select("#tooltip #heading")
+            .text(d["name"] + " - " + d["size"]);
+        d3.select("#tooltip #percentage")
+            .text(d["name"] + " - " + d["size"] + "%");
+        d3.select("#tooltip #revenue")
+            .text("£" + d["size"].toFixed(0));
+        d3.select("#tooltip").classed("hidden", false);
+    };
+
+    var mouseout = function() {
+        d3.select("#tooltip").classed("hidden", true);
+    };
+
     var svg = d3.select("#body").append("div")
         .attr("class", "chart")
         .style("width", w + "px")
@@ -77,13 +97,15 @@ function drawChart(data) {
         .enter().append("svg:g")
         .attr("class", "cell")
         .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-        .on("click", function(d) { return zoom(node == d.parent ? root : d.parent); });
+        .on("click", function(d) { return zoom(node == d.parent ? root : d.parent); })
+        .on("mousemove", mousemove)
+        .on("mouseout", mouseout);
 
     cell.append("svg:rect")
         .attr("width", function(d) { return d.dx - 1; })
         .attr("height", function(d) { return d.dy - 1; })
-        .style("fill", function(d) { return color(d.parent.name); });
-
+        .style("fill", function(d) { return color(d.parent.name); })
+        .
     cell.append("svg:text")
         .attr("x", function(d) { return d.dx / 2; })
         .attr("y", function(d) { return d.dy / 2; })

@@ -14,26 +14,56 @@ function init() {
 
     var count  = 10000;
     var length = (count <= data.length) ? count : data.length;
+    var useRandomData = true;
+    var min = 0;
+    var max = length;
 
     if(length>0) {
+
+        if(useRandomData) {
+            length = 200;
+        };
+
+        var usedIndexes = [];
+
+        var index = null;
+        var pos = null;
+
         for (var i = 0; i < length ; i++) {
 
-            ///console.log(':data:i:', typeof(data[i][0]), data[i][0].trim(), typeof(data[i][1]), data[i][1].trim());
-            data[i][1] = parseFloat(data[i][1]);
+            if(useRandomData){
 
-            if(data[i][1] === data[i][1]) {
+                index = null;
+                pos = null;
+
+                while(pos !== -1) {
+                    index = getRandomIndex(min, max);
+                    pos = usedIndexes.indexOf(index);
+                };
+
+                //console.log(':index:', index);
+
+                usedIndexes.push(index);
+            } else {
+                index = i;
+            }
+
+            ///console.log(':data:i:', typeof(data[i][0]), data[i][0].trim(), typeof(data[i][1]), data[i][1].trim());
+            data[index][1] = parseFloat(data[index][1]);
+
+            if(data[index][1] === data[index][1]) {
                 //response[i][1] = response[i][1].toFixed(2);
             } else {
-                data[i][1] = 0.0;
+                data[index][1] = 0.0;
             };
 
-            var id = data[i][0] ? data[i][0].trim() : i;
-            var size = 1;//data[i][1];
-            var color = data[i][1];
+            var id = data[index][0] ? data[index][0].trim() : index;
+            var size = data[index][1];
+            var color = data[index][1];
 
             tree.children.push({name:id, size: size});
         };
-        console.log('count:', tree.children.length);
+
         drawChart(tree);
     } else {
         console.info('data for draw chart is not exists');
@@ -42,8 +72,8 @@ function init() {
 
 function drawChart(data) {
     console.time('drawChart:end');
-    var w = 2000,
-        h = 2000,
+    var w = 1200,
+        h = 800,
         x = d3.scale.linear().range([0, w]),
         y = d3.scale.linear().range([0, h]),
         color = d3.scale.category20c(),
@@ -54,6 +84,13 @@ function drawChart(data) {
         .round(false)
         .size([w, h])
         .sticky(true)
+        .sort(function(a,b) {
+            if (a.size < b.size) return -1;
+
+            if (a.size > b.size) return 1;
+
+            return 0;
+        })
         .value(function(d) {return d.size; });
 
     var mousemove = function(d) {
@@ -102,10 +139,23 @@ function drawChart(data) {
         .on("mouseout", mouseout);
 
     cell.append("svg:rect")
-        .attr("width", function(d) { return d.dx - 1; })
-        .attr("height", function(d) { return d.dy - 1; })
+        .attr("width", function(d) {
+            var x = d.dx - 1;
+
+            if(x<0){
+                x = -1*x;
+            };
+            return x;
+        })
+        .attr("height", function(d) {
+            var y =  d.dy - 1;
+            if(y<0) {
+                y = -1*y;
+            }
+            return y;
+        })
         .style("fill", function(d) { return color(d.parent.name); })
-        .
+
     cell.append("svg:text")
         .attr("x", function(d) { return d.dx / 2; })
         .attr("y", function(d) { return d.dy / 2; })
@@ -153,6 +203,10 @@ function drawChart(data) {
         d3.event.stopPropagation();
     }
     console.timeEnd('drawChart:end');
+};
+
+function getRandomIndex(min, max) {
+  return Math.floor(Math.random()*(max-min+1))+min;
 };
 
 function getData() {
